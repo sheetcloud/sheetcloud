@@ -13,9 +13,13 @@ def communicate(path: str, token: str, data: str):
    # curl -X 'GET'   'https://api.sheetcloud.de/sheets/list'   -H 'accept: application/json'   -H 'Authorization: Bearer johndoe    
     num_tries = 3
     status = 0
+    headers = {
+        'accept': 'application/json', 
+        'Authorization': f'Bearer {token}'
+    }
     payload = json.dumps(data)
     while num_tries>0:
-        response = requests.get(f'{URL_SHEETCLOUD_API}{path}', payload, headers={'accept': 'application/json', 'Authorization': f'Bearer {token}'}, timeout=100)
+        response = requests.get(f'{URL_SHEETCLOUD_API}{path}', payload, headers=headers, timeout=100)
         print(response)
         if response.status_code == 200:
             break
