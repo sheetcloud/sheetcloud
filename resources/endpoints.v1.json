@@ -1,0 +1,9 @@
+{
+    "version": 1,
+    "auth": "/token",
+    "data": {
+        "list_spreadsheets": "/sheets/list",
+        "read_worksheet": "/sheets/read",
+        "write_worksheet": "/sheets/write"
+    }
+}
