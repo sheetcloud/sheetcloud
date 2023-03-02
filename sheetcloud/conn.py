@@ -2,6 +2,7 @@ import logging
 logger = logging.getLogger('SHEETCLOUD')
 logging.basicConfig(format='\x1b[38;5;224m %(levelname)8s \x1b[0m | \x1b[38;5;39m %(name)s \x1b[0m | %(message)s', level=logging.DEBUG)
 
+import io
 import os
 import json
 import time
@@ -14,11 +15,44 @@ from typing import *
 
 from sheetcloud.utils import load_endpoint_config, pw_obfuscator
 
-# SHEETCLOUD_API_URL = 'https://api.sheetcloud.de'
-SHEETCLOUD_API_URL = 'https://localhost:8080'
 
 ENV_SHEETCLOUD_USERNAME = os.environ.get('SHEETCLOUD_USERNAME', 'env-sheetcloud-username-not-found')
 ENV_SHEETCLOUD_PASSWORD = os.environ.get('SHEETCLOUD_PASSWORD', 'env-sheetcloud-password-not-found')
+ENV_SHEETCLOUD_TOKEN = os.environ.get('SHEETCLOUD_TOKEN', 'env-sheetcloud-token-not-found')
+ENV_SHEETCLOUD_DEV = os.environ.get('SHEETCLOUD_DEV', False)
+
+
+if ENV_SHEETCLOUD_DEV:
+    SHEETCLOUD_API_URL = 'https://localhost:8080'
+else:
+    SHEETCLOUD_API_URL = 'https://api.sheetcloud.de'
+
+
+
+def _request(url: str, data: Optional[Dict]=None, files: Optional[Dict]=None, num_retries: int=3, min_sleep_sec: int=3, exp_sleep_inc: bool=False):
+    headers = {
+        'accept': 'application/json', 
+        'Authorization': f'Bearer {self._auth_token}'
+    }
+
+    while num_retries > 0:
+        response = requests.get(url, data, headers=headers, timeout=100, files=files, verify=False)
+        print(response)
+        if response.status_code in [401, 404]:
+            logger.info('Authentication failed. Check if token is missing, expired, or misspelled.')
+        if response.status_code == 200:
+            break
+        time.sleep(min_sleep_sec)
+        if exp_sleep_inc:
+            min_sleep_sec *= 2
+        num_retries -= 1
+    if response.status_code != 200:
+        logger.warning(f'Could not reach {url}.')
+    resp = {}
+    if response.content is not None:
+        resp = response.json()
+        print('data: ', resp)
+    return resp
 
 
 class _SheetCloudData():
@@ -43,27 +77,27 @@ class _SheetCloudData():
         return list()
 
     def read_worksheet(self, sheet_id: str, worksheet_name: str):
-        res = self._communicate(f"{self._endpoints['data']['read_worksheet']}/{sheet_id}/{worksheet_name}")
-        if 'data' in res:
-            logger.warning('Return')
-            logger.info(res['data'])
-            data = res['data']
-            print(data)
-            df = pd.DataFrame.from_records(data)
-            print(df)
-            return df
-        logger.warning('Empty response.')
-        return list()
+        # headers for request
+        headers = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/octet-stream',
+                'Authorization': f'Bearer {self._auth_token}'
+        }
+        resp = requests.post(f"{SHEETCLOUD_API_URL}{self._endpoints['data']['read_worksheet']}/{sheet_id}/{worksheet_name}", headers=headers, verify=False)
+        status_code = resp.status_code
+        print(status_code)
+        df = pd.read_parquet(io.BytesIO(resp.content), engine='pyarrow', use_nullable_dtypes=True)
+
+        print(df)
+        return df
 
     def write_worksheet(self, sheet_id: str, worksheet_name: str, df: pd.DataFrame):
-        df = pd.DataFrame([[1,2,3],[4,pd.NA,6]], columns=['c1','c2','c3'])
         print(df)
         # data = json.loads(df.to_json(orient='records'))
         # print(data)
         # res = self._communicate(f"{self._endpoints['data']['write_worksheet']}/{sheet_id}/{worksheet_name}", data)
         # print(res)
 
-        import io
         with io.BytesIO() as memory_buffer:
             df.to_parquet(
                 memory_buffer,
@@ -131,6 +165,7 @@ class _SheetCloudData():
             if response.status_code == 200:
                 response_data_dict = response.json()
                 access_token = response_data_dict['access_token']
+                print('Access Token=', access_token)
                 return access_token
             else:
                 if response.content is not None:
@@ -157,7 +192,11 @@ class SheetCloud(metaclass=SheetCloudMeta):
 if __name__ == "__main__":
     print('Start connecting...')
     SheetCloud.data.list_spreadsheets()
-    # SheetCloud.data.read_worksheet('flow_test_sheet', 'Sheet1')
-    SheetCloud.data.write_worksheet('flow_test_sheet', 'Sheet12', None)
+    # SheetCloud.data.read_worksheet('flow_test_sheet', 'Sheet12')
+
+    df = pd.DataFrame([[1,2,3],[4,pd.NA,6],[7,7,pd.NA]], columns=['col1','col2','col3'])
+    # df = pd.read_csv('/home/nicococo/Documents/check.csv')
+    SheetCloud.data.write_worksheet('flow_test_sheet', 'Sheet1', df)
+
     # webbrowser.open(f'{URL_SHEETCLOUD_API}login')
     print('Done')
