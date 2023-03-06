@@ -1,4 +1,4 @@
-name: Continuous Integration (CI)
+name: PYPI
 
 on:
   workflow_dispatch:
