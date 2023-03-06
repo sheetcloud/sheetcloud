@@ -1,10 +1,9 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools", "setuptools-git-versioning"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "sheetcloud"
-version = "0.0.1"
 readme = "README.md"
 keywords = ["Spreadsheets", "RAD", "Database", "Cloud"]
 description = "Sheetcloud.de | Turn Spreadsheets into a Cloud Database | Account required"
@@ -28,7 +27,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-dynamic = ["dependencies"]
+dynamic = ["dependencies", "version"]
 
 [project.urls]
 "Homepage" = "https://www.sheetcloud.de"
@@ -36,11 +35,14 @@ dynamic = ["dependencies"]
 "Source" = "https://github.com/sheetcloud/sheetcloud"
 "Examples" = "https://github.com/sheetcloud"
 
-[tool.setuptools]
-include-package-data = true
+[tool.setuptools-git-versioning]
+enabled = true
 
 [tool.setuptools.dynamic]
 dependencies = { file = ["requirements.txt"] }
+
+[tool.setuptools]
+include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["sheetcloud"]
