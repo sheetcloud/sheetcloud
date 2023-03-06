@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sheetcloud"
+keywords = ["Spreadsheets", "RAD", "Database", "Cloud"]
+version = "0.0.1"
+description = "Sheetcloud.de | Turn Spreadsheets into a Cloud Database | Account required"
+requires-python = ">=3.7"
+authors = [{ name = "SheetCloud.de", email = "info@sheetcloud.de" }]
+classifiers = [
+    # How mature is this project? Common values are
+    #   1 - Planning
+    #   2 - Pre-Alpha 
+    #   3 - Alpha
+    #   4 - Beta
+    #   5 - Production/Stable
+    "Development Status :: 2 - Pre-Alpha",
+
+    # Indicate who your project is intended for
+    "Intended Audience :: Developers",
+    "Topic :: Database",
+    "Topic :: Office/Business :: Financial :: Spreadsheet",
+
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dynamic = ["readme", "dependencies"]
+
+[project.urls]
+"Homepage" = "https://www.sheetcloud.de"
+"Tracker" = "https://github.com/sheetcloud/sheetcloud/issues"
+"Source" = "https://github.com/sheetcloud/sheetcloud"
+"Examples" = "https://github.com/sheetcloud"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.dynamic]
+readme = { file = ["README.md"] }
+dependencies = { file = ["requirements.txt"] }
+
+[tool.setuptools.packages.find]
+where = ["sheetcloud"]
