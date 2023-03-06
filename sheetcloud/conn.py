@@ -29,30 +29,30 @@ else:
 
 
 
-def _request(url: str, data: Optional[Dict]=None, files: Optional[Dict]=None, num_retries: int=3, min_sleep_sec: int=3, exp_sleep_inc: bool=False):
-    headers = {
-        'accept': 'application/json', 
-        'Authorization': f'Bearer {self._auth_token}'
-    }
+# def _request(url: str, data: Optional[Dict]=None, files: Optional[Dict]=None, num_retries: int=3, min_sleep_sec: int=3, exp_sleep_inc: bool=False):
+#     headers = {
+#         'accept': 'application/json', 
+#         'Authorization': f'Bearer {self._auth_token}'
+#     }
 
-    while num_retries > 0:
-        response = requests.get(url, data, headers=headers, timeout=100, files=files, verify=False)
-        print(response)
-        if response.status_code in [401, 404]:
-            logger.info('Authentication failed. Check if token is missing, expired, or misspelled.')
-        if response.status_code == 200:
-            break
-        time.sleep(min_sleep_sec)
-        if exp_sleep_inc:
-            min_sleep_sec *= 2
-        num_retries -= 1
-    if response.status_code != 200:
-        logger.warning(f'Could not reach {url}.')
-    resp = {}
-    if response.content is not None:
-        resp = response.json()
-        print('data: ', resp)
-    return resp
+#     while num_retries > 0:
+#         response = requests.get(url, data, headers=headers, timeout=100, files=files, verify=False)
+#         print(response)
+#         if response.status_code in [401, 404]:
+#             logger.info('Authentication failed. Check if token is missing, expired, or misspelled.')
+#         if response.status_code == 200:
+#             break
+#         time.sleep(min_sleep_sec)
+#         if exp_sleep_inc:
+#             min_sleep_sec *= 2
+#         num_retries -= 1
+#     if response.status_code != 200:
+#         logger.warning(f'Could not reach {url}.')
+#     resp = {}
+#     if response.content is not None:
+#         resp = response.json()
+#         print('data: ', resp)
+#     return resp
 
 
 class _SheetCloudData():
