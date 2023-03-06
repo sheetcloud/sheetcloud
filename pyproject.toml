@@ -37,6 +37,7 @@ dynamic = ["dependencies", "version"]
 
 [tool.setuptools-git-versioning]
 enabled = true
+template = "{tag}.post{ccount}"
 dev_template = "{tag}.post{ccount}"
 
 [tool.setuptools.dynamic]
