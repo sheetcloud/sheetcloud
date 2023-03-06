@@ -37,6 +37,7 @@ dynamic = ["dependencies", "version"]
 
 [tool.setuptools-git-versioning]
 enabled = true
+dev_template = "{tag}.post{ccount}"
 
 [tool.setuptools.dynamic]
 dependencies = { file = ["requirements.txt"] }
