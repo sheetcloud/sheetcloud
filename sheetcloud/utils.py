@@ -10,5 +10,8 @@ def load_endpoint_config(version_name: str) -> Dict:
     return data
 
 
-def pw_obfuscator(pw: str) -> str:
-    return '******' if len(pw) < 5 else f'{pw[:3]}****'
+def pw_obfuscator(pw: str, exception: str=None) -> str:
+    obf = '******' if len(pw) < 5 else f'{pw[:3]}****'
+    if exception == pw:
+        obf = pw
+    return obf
