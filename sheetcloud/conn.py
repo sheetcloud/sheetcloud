@@ -51,9 +51,9 @@ def service(path: str, data: Optional[Dict]=None, params: Optional[Dict]=None, f
     else:
         headers['Authorization'] = f'Bearer {_sheetcloud_auth_token}'
     
-    payload = None
-    if data is not None:
-        payload = json.dumps(data)
+    payload = data
+    # if data is not None:
+    #     payload = json.dumps(data)
 
     while num_retries > 0:
 
