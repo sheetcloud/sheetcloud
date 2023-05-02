@@ -20,7 +20,7 @@ def list_my_csvs() -> List[Dict]:
     return list()
 
 
-def read(file_id: str) -> pd.DataFrame:
+def read_csv(file_id: str) -> pd.DataFrame:
     headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/octet-stream',
@@ -31,7 +31,7 @@ def read(file_id: str) -> pd.DataFrame:
     return df
 
 
-def write(name: str, df: pd.DataFrame, cache: bool=True) -> None:
+def write_csv(name: str, df: pd.DataFrame, cache: bool=True) -> None:
     with io.BytesIO() as memory_buffer:
         df.to_parquet(
             memory_buffer,
@@ -54,7 +54,7 @@ def write(name: str, df: pd.DataFrame, cache: bool=True) -> None:
 if __name__ == "__main__":
     print('Start connecting...')
     print(list_my_csvs())
-    df = read('1etL1yAilIh_mDuY7B_JH8sTY3Y0W3lKI')
+    df = read_csv('1etL1yAilIh_mDuY7B_JH8sTY3Y0W3lKI')
     print(df)
     print(df.info())
 
@@ -62,6 +62,6 @@ if __name__ == "__main__":
     # df = pd.DataFrame([[1,2,3],[4,pd.NA,6],[7,7,pd.NA]], columns=['col1','col2','col3'])
     # df = pd.read_csv('../check.csv')
     # df = pd.concat([df, df, df, df], ignore_index=True) # ~2.8m entries (incl. NA)
-    write('sheetcloud-csv-test-1', df)
+    write_csv('sheetcloud-csv-test-1', df)
 
     print('Done')
