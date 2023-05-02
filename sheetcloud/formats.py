@@ -22,6 +22,44 @@ FORMAT_TEXT_WRAP_CLIP = 'CLIP'
 FORMAT_TEXT_WRAP_WRAP = 'WRAP'
 
 
+header_blue = {
+    "backgroundColor": {
+        "red": 0.9,
+        "green": 0.9,
+        "blue": 0.4
+    },
+    "horizontalAlignment": "CENTER",
+    "textFormat": {
+        "foregroundColor": {
+            "red": 0.0,
+            "green": 0.0,
+            "blue": 0.2
+        },
+    "fontSize": 11,
+    "bold": True
+    }
+}        
+
+
+index_column_blue = {
+    "backgroundColor": {
+        "red": 0.95,
+        "green": 0.95,
+        "blue": 0.8
+    },
+    "horizontalAlignment": FORMAT_HORIZONTAL_ALIGN_LEFT,
+    "textFormat": {
+        "foregroundColor": {
+            "red": 0.0,
+            "green": 0.0,
+            "blue": 0.1
+        },
+    "fontSize": 12,
+    "bold": True
+    }
+}        
+
+
 header_grey = {
     "backgroundColor": {
         "red": 0.9,

@@ -42,25 +42,29 @@ def service(path: str, data: Optional[Dict]=None, params: Optional[Dict]=None, f
     # normal request
     # curl -X 'GET'   'https://api.sheetcloud.de/sheets/list'   -H 'accept: application/json'   -H 'Authorization: Bearer johndoe    
     global _sheetcloud_auth_token
-    
+    if _sheetcloud_auth_token is None:
+        logger.debug('Request authorization token.')
+        auth_token = request_auth_token()
+        if auth_token is None:
+            raise SheetcloudAuthorizationFailed()
+        _sheetcloud_auth_token = auth_token
+
     if headers is None:
         headers = {
-            'accept': 'application/json', 
-            'Authorization': f'Bearer {_sheetcloud_auth_token}'
+            # 'Content-Type': 'application/json',
+            'Accept': 'application/json'
         }
-    else:
-        headers['Authorization'] = f'Bearer {_sheetcloud_auth_token}'
+    headers['Authorization'] = f'Bearer {_sheetcloud_auth_token}'
     
-    payload = data
-    # if data is not None:
-    #     payload = json.dumps(data)
+    payload = None
+    if data is not None:
+        payload = json.dumps(data)
 
     while num_retries > 0:
-
         if method == 'post':
-            response = requests.post(f'{SHEETCLOUD_API_URL}{path}', payload, params=params, files=files, headers=headers, timeout=100, verify=not ENV_SHEETCLOUD_DEV)
+            response = requests.post(f'{SHEETCLOUD_API_URL}{path}', data=payload, params=params, files=files, headers=headers, timeout=100, verify=not ENV_SHEETCLOUD_DEV)
         else:
-            response = requests.get(f'{SHEETCLOUD_API_URL}{path}', payload, params=params, files=files, headers=headers, timeout=100, verify=not ENV_SHEETCLOUD_DEV)
+            response = requests.get(f'{SHEETCLOUD_API_URL}{path}', data=payload, params=params, files=files, headers=headers, timeout=100, verify=not ENV_SHEETCLOUD_DEV)
 
         if response.status_code in [401, 404]:
             logger.debug('Request new authorization token.')
@@ -70,6 +74,10 @@ def service(path: str, data: Optional[Dict]=None, params: Optional[Dict]=None, f
             headers['Authorization'] = f'Bearer {_sheetcloud_auth_token}'
         if response.status_code == 200:
             break
+
+        if files is not None:
+            logger.debug(f'Manually setting seek(0) in case of re-tries.')
+            files['file'][1].seek(0)
         time.sleep(3)
         num_retries -= 1
 

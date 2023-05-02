@@ -10,7 +10,6 @@ from datetime import datetime
 from typing import *
 
 from sheetcloud.conn import service
-from sheetcloud.utils import int2a1
 
 
 def list_my_spreadsheets() -> List[Dict]:
@@ -39,7 +38,14 @@ def format_spreadsheet(sheet_url_or_name: str, worksheet_name: str, a1range_form
     _ = service('/sheets/format', data={'formats': fmts}, params=params, method='post')
 
 
-def read(sheet_url_or_name: str, worksheet_name: str) -> pd.DataFrame:
+def share(sheet_url_or_name: str, share_emails_write_access: Optional[List[str]]=None, share_emails_read_only_access: Optional[List[str]]=None, notification_msg: Optional[str]=None) -> None:
+    params = {'spreadsheet_url_or_name': sheet_url_or_name}
+    data={'emails_write_access': share_emails_write_access, 'emails_read_access': share_emails_read_only_access, 'notification_msg': notification_msg}
+    resp = service('/sheets/share', params=params, data=data)
+    return resp
+
+
+def read(sheet_url_or_name: str, worksheet_name: str, cache: bool=True) -> pd.DataFrame:
     headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/octet-stream',
@@ -51,7 +57,7 @@ def read(sheet_url_or_name: str, worksheet_name: str) -> pd.DataFrame:
     return df
 
 
-def write(sheet_url_or_name: str, worksheet_name: str, df: pd.DataFrame, append: bool=False, share_emails_write_access: List[str]=None, share_emails_read_only_access: List[str]=None, cache: bool=True):
+def write(sheet_url_or_name: str, worksheet_name: str, df: pd.DataFrame, append: bool=False, cache: bool=True) -> None:
     with io.BytesIO() as memory_buffer:
         df.to_parquet(
             memory_buffer,
@@ -64,37 +70,31 @@ def write(sheet_url_or_name: str, worksheet_name: str, df: pd.DataFrame, append:
             'file': ('Test', memory_buffer, 'application/octet-stream')
         }
         params = {'spreadsheet_url_or_name': sheet_url_or_name, 'worksheet_name': worksheet_name}
-        if append:
-            resp = service('/sheets/append', params=params, files=files)
-        else:
-            data={'emails_write_access': share_emails_write_access, 'emails_read_access': share_emails_read_only_access}
-            # files['share_emails_write_access'] = ('share_emails_write_access', json.dumps(share_emails_write_access), 'application/json')
-            # files['share_emails_read_only_access'] = ('share_emails_read_only_access', json.dumps(share_emails_read_only_access), 'application/json')
-
-            # files['share_emails_write_access'] = ('share_emails_write_access', ','.join(share_emails_write_access), 'application/text')
-            # files['share_emails_read_only_access'] = ('share_emails_read_only_access', ','.join(share_emails_read_only_access), 'application/text')
-            resp = service('/sheets/write', params=params, files=files, data=data)
+        endpoint = '/sheets/append' if append else '/sheets/write'
+        resp = service(endpoint, params=params, files=files, method='post')
         print(resp)
-    return resp
 
 
-def append(sheet_url_or_name: str, worksheet_name: str, df: pd.DataFrame):
-    write(sheet_url_or_name, worksheet_name, df, append=True)
+def append(sheet_url_or_name: str, worksheet_name: str, df: pd.DataFrame, cache: bool=True) -> None:
+    write(sheet_url_or_name, worksheet_name, df, append=True, cache=cache)
 
 
 
 if __name__ == "__main__":
     print('Start connecting...')
-    # sheets = list()
+    # print(list_my_spreadsheets())
     # print(sheets)
     # read('sheetcloud-test', 'Sheet1')
     # print(get_modified_datetime('sheetcloud-test'))
+
 
     df = pd.DataFrame([[1,2,3],[4,pd.NA,6],[7,7,pd.NA]], columns=['col1','col2','col3'])
     # df = pd.read_csv('../check.csv')
     # df = pd.concat([df, df, df, df], ignore_index=True) # ~2.8m entries (incl. NA)
     # append('sheetcloud-test', 'write-test', df)
-    write('sheetcloud-test-1', 'write-test', df, share_emails_read_only_access=['nico.goernitz@gmail.com'], share_emails_write_access=['nico@morphais.com', 'abc@def.com'])
+    # write('sheetcloud-test-1', 'write-test', df)
+    # write('sheetcloud-test-2', 'write-test', df)
+    # share('sheetcloud-test-1', share_emails_read_only_access=['nico.goernitz@gmail.com'], share_emails_write_access=['nico@morphais.com', 'abc@def.com'], notification_msg='Blubb blubb')
 
     # from sheetcloud.formats import data_small, header_red
     # format_spreadsheet('sheetcloud-test', 'write-test', [('A1:F1', header_red)], auto_resize=False)
