@@ -30,8 +30,7 @@ def write(sheet_url_or_name: str, worksheet_name: str, env: Dict[str, str], cach
     logger.info(f'Writing {df.shape[0]} env variables to worksheet {worksheet_name} in spreadsheet {sheet_url_or_name}.')
     sheets.write(sheet_url_or_name, worksheet_name, df, cache=cache)
 
-    fmts = [('A:A', {'wrapStrategy': formats.FORMAT_TEXT_WRAP_CLIP, 'width': 250}), ('B:B', {'wrapStrategy': formats.FORMAT_TEXT_WRAP_CLIP, 'width': 500}), ('A1:B1', formats.header_blue), ('A2:A', formats.index_column_blue)]
-    # fmts = [('A1:B1', formats.header_blue), ('A2:A', formats.index_column_blue)]
+    fmts = [('A:A', {'width': 250}), ('B:B', {'width': 500}), ('A1:B1', formats.header_blue), ('A2:A', formats.index_column_blue)]
     sheets.format_spreadsheet(sheet_url_or_name, worksheet_name, a1range_format_list=fmts, auto_resize=False)
 
 
