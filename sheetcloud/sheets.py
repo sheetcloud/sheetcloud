@@ -9,6 +9,7 @@ from datetime import datetime
 from typing import *
 
 from sheetcloud.conn import service
+from sheetcloud.templates import load_template
 
 
 def list_my_spreadsheets() -> List[Dict]:
@@ -70,8 +71,7 @@ def write(sheet_url_or_name: str, worksheet_name: str, df: pd.DataFrame, append:
         }
         params = {'spreadsheet_url_or_name': sheet_url_or_name, 'worksheet_name': worksheet_name}
         endpoint = '/sheets/append' if append else '/sheets/write'
-        resp = service(endpoint, params=params, files=files, method='post')
-        print(resp)
+        resp = service(endpoint, params=params, files=files, method='post')       
 
 
 def append(sheet_url_or_name: str, worksheet_name: str, df: pd.DataFrame, cache: bool=True) -> None:

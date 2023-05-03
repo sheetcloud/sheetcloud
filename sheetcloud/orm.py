@@ -2,6 +2,7 @@ import logging
 logger = logging.getLogger('SHEETCLOUD ORM')
 logging.basicConfig(format='\x1b[38;5;224m %(levelname)8s \x1b[0m | \x1b[38;5;39m %(name)s \x1b[0m | %(message)s', level=logging.DEBUG)
 
+import json
 import uuid
 import pandas as pd
 
@@ -44,43 +45,57 @@ class MyDC:
 #     return ud
 
 
-def build_df_from_dcs(dataclass_list: List) -> pd.DataFrame:
-    for dc in dataclass_list:
-        if is_dataclass(dc):
-            print(asdict(dataclass_list[0]))
-        else:
-            logger.warning(f'Not a dataclass {str(dc)}.')
+def build_dfs_from_dc_table(dc_table: List) -> Dict[str, pd.DataFrame]:
+    df = pd.DataFrame.from_records(dc_table, columns=['parent', 'parent_class', 'parent_field', 'obj_class', 'obj', 'parent_uuid', 'obj_uuid'])
+    
+    table_names = df['parent_class'].unique().tolist()
+    omit_vars = dict()
+    for pc in table_names:
+        omit_vars[pc] = df[df.parent_class == pc]['parent_field'].unique().tolist()
+    print(omit_vars)
+
+    tables = dict()
+    for entry in dc_table:
+        _, _, parent_field, obj_class, obj, parent_uuid, obj_uuid = entry
+
+        od_org = asdict(obj)
+        _ = [od_org.pop(ov, None) for ov in omit_vars.get(obj_class, list())]
+        od = dict()
+        for k, v in od_org.items():
+            od[k] = json.dumps(v)
+        od.update({'parent_uuid': str(parent_uuid) if parent_uuid is not None else None, 'uuid': str(obj_uuid), 'parent_field': parent_field})
+
+        if not obj_class in tables: 
+            tables[obj_class] = list()
+        tables[obj_class].append(od)
+
+    dfs = dict()
+    for name, tbl in tables.items():
+        dfs[name] = pd.DataFrame.from_dict(tbl)
+    return dfs
 
 
-def build_dc_table(dataclass_list: List, res_list: List, parent: Any, parent_field: str) -> List:
+def build_dc_table(dataclass_list: List, res_list: List, parent: Any, parent_field: str, parent_uuid: str) -> List:
     for dc in dataclass_list:
         if is_dataclass(dc):
-            res_list.append( (parent, parent_field, dc, uuid.uuid4()) )
+            dc_uuid = uuid.uuid4()
+            parent_class = None if parent is None else type(parent).__name__
+            res_list.append( (parent, parent_class, parent_field, type(dc).__name__, dc, parent_uuid, dc_uuid) )
 
             for f in fields(dc):
                 if isinstance(vars(dc)[f.name], list):
-                    res_list = build_dc_table(vars(dc)[f.name], res_list, dc, f.name)
+                    res_list = build_dc_table(vars(dc)[f.name], res_list, dc, f.name, dc_uuid)
                 # asdict(dataclass_list[0])  
     return res_list
 
 
-def write(sheet_url_or_name: str, dataclass_list: List, prefix: str='orm_', cache: bool=True) -> None:
+def write(sheet_url_or_name: str, dataclass_list: List, prefix: str='orm', template_name: Optional[str]=None, cache: bool=True) -> None:
+    dc_table = build_dc_table(dataclass_list, list(), parent=None, parent_field=None, parent_uuid=None)
+    dfs = build_dfs_from_dc_table(dc_table)
 
-    dc_list = build_dc_table(dataclass_list, list(), parent=None, parent_field=None)
-
-    df = pd.DataFrame.from_records(dc_list)
-
-    print('\n\n')
-    print(df)
-    # print(dc_list)
-    # df = pd.DataFrame.from_records([env])
-    # df = df.transpose()
-    # df.reset_index(inplace=True)
-    # df.rename(columns={'index': 'key', 0: 'value'}, inplace=True)
-    # print(df)
-    # logger.info(f'Writing {df.shape[0]} env variables to worksheet {worksheet_name} in spreadsheet {sheet_url_or_name}.')
-    # sheets.write(sheet_url_or_name, worksheet_name, df, cache=cache)
-
+    for tbl_name, tbl_df in dfs.items():
+        worksheet_name = f'{prefix}_{tbl_name}'
+        sheets.write(sheet_url_or_name, worksheet_name, tbl_df, cache=cache)  
 
 
 if __name__ == "__main__":
