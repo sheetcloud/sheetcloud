@@ -8,7 +8,7 @@ import pandas as pd
 from typing import *
 
 from sheetcloud import sheets
-from sheetcloud import formats
+from sheetcloud import templates
 
 
 # def write_image(sheet_url_or_name: str, worksheet_name: str, img, cache: bool=True) -> None:
