@@ -8,7 +8,7 @@ import pandas as pd
 from typing import *
 
 from sheetcloud import sheets
-from sheetcloud import formats
+from sheetcloud import templates
 
 
 def read(sheet_url_or_name: str, worksheet_name: str, export: bool=True, cache: bool=True) -> Optional[Dict[str, str]]:
@@ -21,7 +21,7 @@ def read(sheet_url_or_name: str, worksheet_name: str, export: bool=True, cache: 
     return ud
 
 
-def write(sheet_url_or_name: str, worksheet_name: str, env: Dict[str, str], cache: bool=True) -> None:
+def write(sheet_url_or_name: str, worksheet_name: str, env: Dict[str, str], template_name: Optional[str]='red_sailfish', cache: bool=True) -> None:
     df = pd.DataFrame.from_records([env])
     df = df.transpose()
     df.reset_index(inplace=True)
@@ -30,8 +30,11 @@ def write(sheet_url_or_name: str, worksheet_name: str, env: Dict[str, str], cach
     logger.info(f'Writing {df.shape[0]} env variables to worksheet {worksheet_name} in spreadsheet {sheet_url_or_name}.')
     sheets.write(sheet_url_or_name, worksheet_name, df, cache=cache)
 
-    fmts = [('A:A', {'width': 250}), ('B:B', {'width': 500}), ('A1:B1', formats.header_blue), ('A2:A', formats.index_column_blue)]
-    sheets.format_spreadsheet(sheet_url_or_name, worksheet_name, a1range_format_list=fmts, auto_resize=False)
+    if template_name is not None:
+        tmp = templates.load_template(template_name)
+        fmts = tmp.apply(df, highlight_columns=['A'], ws=[('A', 250), ('B', 500)])
+        # fmts = [tmp.empty.build('A:A', w=250), tmp.empty.build('B:B', w=500), tmp.header.build('A1:B1'), tmp.highlight_column.build('A2:A')]
+        sheets.format_spreadsheet(sheet_url_or_name, worksheet_name, a1range_format_list=fmts, auto_resize=tmp.auto_resize)
 
 
 

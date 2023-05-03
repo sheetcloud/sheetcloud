@@ -1,0 +1,129 @@
+{
+    "header": {
+        "padding": {
+            "top": 10,
+            "right": 10,
+            "bottom": 4,
+            "left": 3
+        },
+        "borders": {
+            "top": {
+                "style": "SOLID_THICK",
+                "color": {
+                    "red": 0.9,
+                    "green": 0.2,
+                    "blue": 0.8
+                }
+            },
+            "bottom": {
+                "style": "DASHED",
+                "color": {
+                    "red": 0.9,
+                    "green": 0.2,
+                    "blue": 0.8
+                }
+            },
+            "left": {
+                "style": "DASHED",
+                "color": {
+                    "red": 0.9,
+                    "green": 0.2,
+                    "blue": 0.8
+                }
+            },
+            "right": {
+                "style": "DASHED",
+                "color": {
+                    "red": 0.9,
+                    "green": 0.2,
+                    "blue": 0.8
+                }
+            }
+        },
+        "backgroundColor": {
+            "red": 0.9,
+            "green": 0.6,
+            "blue": 0.6
+        },
+        "horizontalAlignment": "CENTER",
+        "verticalAlignment": "MIDDLE",
+        "wrapStrategy": "CLIP",
+        "textFormat": {
+            "foregroundColorStyle": {
+                "rgbColor": {
+                    "red": 0.6,
+                    "green": 0.0,
+                    "blue": 0.2,
+                    "alpha": 1.0
+                }
+            },
+            "fontSize": 10,
+            "bold": true,
+            "italic": false,
+            "strikethrough": false,
+            "underline": false
+        }
+    },
+    "body": {
+        "padding": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+        },
+        "backgroundColor": {
+            "red": 1.0,
+            "green": 1.0,
+            "blue": 1.0
+        },
+        "horizontalAlignment": "RIGHT",
+        "verticalAlignment": "MIDDLE",
+        "wrapStrategy": "CLIP",
+        "textFormat": {
+            "foregroundColorStyle": {
+                "rgbColor": {
+                    "red": 0.0,
+                    "green": 0.0,
+                    "blue": 0.0
+                }
+            },
+            "fontSize": 8,
+            "fontFamily": "Verdana",
+            "bold": false,
+            "italic": false,
+            "strikethrough": false,
+            "underline": false
+        }
+    },
+    "highlight_column": {
+        "padding": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 20
+        },
+        "backgroundColor": {
+            "red": 0.98,
+            "green": 0.8,
+            "blue": 0.8
+        },
+        "horizontalAlignment": "LEFT",
+        "verticalAlignment": "MIDDLE",
+        "wrapStrategy": "CLIP",
+        "textFormat": {
+            "foregroundColorStyle": {
+                "rgbColor": {
+                    "red": 0.4,
+                    "green": 0.0,
+                    "blue": 0.1,
+                    "alpha": 0.75
+                }
+            },
+            "fontSize": 10,
+            "bold": true,
+            "italic": false,
+            "strikethrough": false,
+            "underline": false
+        }
+    }
+}

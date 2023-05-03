@@ -3,7 +3,6 @@ logger = logging.getLogger('SHEETCLOUD SHEETS')
 logging.basicConfig(format='\x1b[38;5;224m %(levelname)8s \x1b[0m | \x1b[38;5;39m %(name)s \x1b[0m | %(message)s', level=logging.DEBUG)
 
 import io
-import json
 import pandas as pd
 
 from datetime import datetime
