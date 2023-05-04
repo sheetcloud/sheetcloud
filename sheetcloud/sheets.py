@@ -12,12 +12,21 @@ from sheetcloud.conn import service
 from sheetcloud.templates import load_template
 
 
-def list_my_spreadsheets() -> List[Dict]:
+def list_spreadsheets() -> List[Dict]:
     res = service('/sheets/list', method='post')
     if 'sheets' in res:
         logger.info(f'List contains a total of {len(res["sheets"])} spreadsheets.')
         return res['sheets']
     return list()
+
+
+def list_worksheets_in_spreadsheet(sheet_url_or_name: str) -> List[str]:
+    res = service('/sheets/list', method='post', params={'spreadsheet_url_or_name': sheet_url_or_name})
+    if 'sheets' in res:
+        logger.info(f'List contains a total of {len(res["sheets"])} worksheets.')
+        return res['sheets']
+    return list()
+
 
 
 def get_modified_datetime(sheet_url_or_name: str) -> datetime:
@@ -53,7 +62,6 @@ def read(sheet_url_or_name: str, worksheet_name: str, cache: bool=True) -> pd.Da
     params = {'spreadsheet_url_or_name': sheet_url_or_name, 'worksheet_name': worksheet_name}
     content = service('/sheets/read', params=params, headers=headers, method='post', return_dict=False)
     df = pd.read_parquet(io.BytesIO(content), engine='pyarrow', use_nullable_dtypes=True)
-    print(df)
     return df
 
 
@@ -81,7 +89,9 @@ def append(sheet_url_or_name: str, worksheet_name: str, df: pd.DataFrame, cache:
 
 if __name__ == "__main__":
     print('Start connecting...')
-    # print(list_my_spreadsheets())
+    print(list_spreadsheets())
+    print(list_worksheets_in_spreadsheet('sheetcloud-test'))
+
     # print(sheets)
     # read('sheetcloud-test', 'Sheet1')
     # print(get_modified_datetime('sheetcloud-test'))

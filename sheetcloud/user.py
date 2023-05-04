@@ -1,8 +1,8 @@
+import webbrowser
 import logging
 logger = logging.getLogger('SHEETCLOUD USER')
 logging.basicConfig(format='\x1b[38;5;224m %(levelname)8s \x1b[0m | \x1b[38;5;39m %(name)s \x1b[0m | %(message)s', level=logging.DEBUG)
 
-import webbrowser
 
 from typing import *
 
@@ -17,16 +17,21 @@ def request_recovery_token(email: str=None) -> None:
     logging.info('Please check your sheetcloud dashboard spreadsheet. You\'ll find the recovery token on the \'Settings\ worksheet.')
 
 
-def password_reset(recovery_token: str) -> None:
-    pass
+def password_reset(recovery_token: str, new_password: str) -> None:
+    _ = service('/users/password/reset', params={'recovery_token': recovery_token, 'new_password': new_password}, method='post')
+    logging.info('Password reset attempted. Please change your environment variables accordingly. Please note that due to security reasons the response does not contain information about the success of the attempt.')
 
 
 def change_password(new_password: str) -> None:
-    pass
+    response = service('/users/password/change', params={'new_password': new_password}, method='post')
+    if 'password_updated' in response:
+        logging.info(f'Password updated {response["password_updated"]}.')
 
 
 def activate_license_key(key: str) -> None:
-    pass
+    response = service('/users/license/update', params={'key': key}, method='post')
+    if 'is_valid' in response:
+        logging.info(f'License is valid = {response["is_valid"]}.')
 
 
 def open_sheetcloud_website() -> None:
@@ -36,5 +41,8 @@ def open_sheetcloud_website() -> None:
 
 if __name__ == "__main__":
     print('Test user connection...')
-    open_sheetcloud_website()
+    # open_sheetcloud_website()
+    # password_reset('jkdhsfjklasjhjkdfh', 'abb')
+    activate_license_key('dskljklasfjd')
+
     print('Done')
