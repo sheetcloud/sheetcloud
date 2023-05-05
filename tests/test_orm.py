@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Optional, List, Dict, Any
 
 import pytest
-import sheetcloud as sc
+# import sheetcloud as sc
 
 
 @dataclass
