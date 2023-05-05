@@ -9,7 +9,8 @@ import requests
 
 from typing import *
 
-from sheetcloud.utils import pw_obfuscator
+# from sheetcloud.utils import pw_obfuscator
+from .utils import pw_obfuscator
 
 
 ENV_SHEETCLOUD_USERNAME = os.environ.get('SHEETCLOUD_USERNAME', 'missing')
