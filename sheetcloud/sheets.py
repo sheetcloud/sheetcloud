@@ -5,11 +5,14 @@ logging.basicConfig(format='\x1b[38;5;224m %(levelname)8s \x1b[0m | \x1b[38;5;39
 import io
 import pandas as pd
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import *
 
 from sheetcloud.conn import service
+from sheetcloud.utils import get_modification_datetime_from_file, create_dir
 from sheetcloud.templates import load_template
+
+SHEETCLOUD_CACHE_PATH = '.tmp'
 
 
 def list_spreadsheets() -> List[Dict]:
@@ -28,13 +31,14 @@ def list_worksheets_in_spreadsheet(sheet_url_or_name: str) -> List[str]:
     return list()
 
 
-
-def get_modified_datetime(sheet_url_or_name: str) -> datetime:
+def get_modified_datetime(sheet_url_or_name: str) -> Tuple[datetime, str, str]:
     res = service('/sheets/modified-time', params={'spreadsheet_url_or_name': sheet_url_or_name}, method='post')
     if 'timestamp' in res:
-        return datetime.fromisoformat(res['timestamp'])
+        ts = datetime.fromisoformat(res['timestamp'])
+        ts = ts.astimezone(timezone.utc)
+        return ts, res['id'], res['title']
     logger.warning(f'Could not find timestamp of speadsheet {sheet_url_or_name}. Returning current time.')
-    return datetime.now()
+    return datetime.now(), None, None
 
 
 def format_spreadsheet(sheet_url_or_name: str, worksheet_name: str, a1range_format_list: List[Tuple[str, Dict]], auto_resize: bool=True) -> None:
@@ -54,7 +58,45 @@ def share(sheet_url_or_name: str, share_emails_write_access: Optional[List[str]]
     return resp
 
 
+def _cache_read(id: str, worksheet: str, ts: datetime) -> Optional[pd.DataFrame]:
+    create_dir(SHEETCLOUD_CACHE_PATH)
+    fname = f'{SHEETCLOUD_CACHE_PATH}/{id}_{worksheet}.parquet'
+    ts_local = get_modification_datetime_from_file(fname)
+    if ts_local is not None and ts_local < ts:
+        logger.debug(f'Restore {worksheet} from local cache. Local ts={ts_local}, remote ts={ts}.')
+        return pd.read_parquet(fname)
+    return None
+
+
+def _cache_write(id: str, worksheet: str, df: pd.DataFrame, append: bool, ts: datetime) -> None:
+    create_dir(SHEETCLOUD_CACHE_PATH)
+    fname = f'{SHEETCLOUD_CACHE_PATH}/{id}_{worksheet}.parquet'
+    if not append:
+        df.to_parquet(fname)
+        ts_local = get_modification_datetime_from_file(fname)
+        logger.debug(f'Store worksheet {worksheet} in local cache. Local ts={ts_local}, remote ts={ts}.')
+    else:
+        ts_local = get_modification_datetime_from_file(fname)
+        logger.debug(f'Checking if data can be appended to worksheet {worksheet} in local cache. Local ts={ts_local}, remote ts={ts}.')
+        if ts_local is not None and ts_local < ts:
+            df_org = pd.read_parquet(fname)
+            df = pd.concat([df_org, df], ignore_index=True)
+            df.to_parquet(fname)
+            ts_local = get_modification_datetime_from_file(fname)
+            logger.debug(f'Appending data to worksheet {worksheet} in local cache. Local ts={ts_local}, remote ts={ts}.')
+
+
 def read(sheet_url_or_name: str, worksheet_name: str, cache: bool=True) -> pd.DataFrame:
+    ts = None
+    id = None
+    if cache:
+        ts, id, title = get_modified_datetime(sheet_url_or_name)
+        if id is not None:
+            df = _cache_read(id=id, worksheet=worksheet_name, ts=ts)
+            if df is not None:
+                return df
+
+    # no cached version available
     headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/octet-stream',
@@ -62,10 +104,17 @@ def read(sheet_url_or_name: str, worksheet_name: str, cache: bool=True) -> pd.Da
     params = {'spreadsheet_url_or_name': sheet_url_or_name, 'worksheet_name': worksheet_name}
     content = service('/sheets/read', params=params, headers=headers, method='post', return_dict=False)
     df = pd.read_parquet(io.BytesIO(content), engine='pyarrow', use_nullable_dtypes=True)
+    if cache and id is not None:
+        _cache_write(id, worksheet_name, df, False, ts)
     return df
 
 
 def write(sheet_url_or_name: str, worksheet_name: str, df: pd.DataFrame, append: bool=False, cache: bool=True) -> None:
+    if cache:
+        ts, id, title = get_modified_datetime(sheet_url_or_name)
+        if id is not None:
+            _cache_write(id=id, worksheet=worksheet_name, df=df, append=append, ts=ts)
+
     with io.BytesIO() as memory_buffer:
         df.to_parquet(
             memory_buffer,
@@ -89,11 +138,11 @@ def append(sheet_url_or_name: str, worksheet_name: str, df: pd.DataFrame, cache:
 
 if __name__ == "__main__":
     print('Start connecting...')
-    print(list_spreadsheets())
-    print(list_worksheets_in_spreadsheet('sheetcloud-test'))
+    # print(list_spreadsheets())
+    # print(list_worksheets_in_spreadsheet('sheetcloud-test'))
 
     # print(sheets)
-    # read('sheetcloud-test', 'Sheet1')
+    read('sheetcloud-test', 'write-test')
     # print(get_modified_datetime('sheetcloud-test'))
 
 
@@ -101,7 +150,7 @@ if __name__ == "__main__":
     # df = pd.read_csv('../check.csv')
     # df = pd.concat([df, df, df, df], ignore_index=True) # ~2.8m entries (incl. NA)
     # append('sheetcloud-test', 'write-test', df)
-    # write('sheetcloud-test-1', 'write-test', df)
+    # write('sheetcloud-test', 'write-test', df)
     # write('sheetcloud-test-2', 'write-test', df)
     # share('sheetcloud-test-1', share_emails_read_only_access=['nico.goernitz@gmail.com'], share_emails_write_access=['nico@morphais.com', 'abc@def.com'], notification_msg='Blubb blubb')
 

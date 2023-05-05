@@ -14,27 +14,6 @@ from sheetcloud import sheets
 from sheetcloud import templates
 
 
-@dataclass
-class MySubSubDC:
-    name: str = 'myname'
-
-
-@dataclass
-class MySubDC:
-    another_float: float=3.1415
-    my_sub_dcs1: Optional[List[MySubSubDC]] = None
-    my_sub_dcs2: Optional[List[MySubSubDC]] = None
-
-
-@dataclass
-class MyDC:
-    my_int: int = 2
-    my_str: str = 'my_str'
-    my_list_int: List[int] = field(default_factory=lambda: [1,2,3,4])
-    my_dict: Dict[str, Any] = field(default_factory=lambda: {'key1': 'value1', 'key2': 'value2'})
-    my_sub_dcs: Optional[List[MySubDC]] = None
-
-
 def get_fully_qualified_classname(obj) -> str:
     cls = type(obj)
     module = cls.__module__
@@ -173,12 +152,4 @@ def write(sheet_url_or_name: str, dataclass_list: List, prefix_id: str, template
 if __name__ == "__main__":
     print('Start connecting...')
     
-    sub_dc = MySubDC(my_sub_dcs1=[MySubSubDC(), MySubSubDC()])
-    dc = MyDC(my_sub_dcs=[sub_dc, sub_dc]) 
-    my_dcs = [dc, dc]
-
-    # write('sheetcloud-test', my_dcs, 'ORM_TEST')
-    objs = read('sheetcloud-test', 'ORM_TEST', [MyDC, MySubDC, MySubSubDC])
-    print(objs)
-
     print('Done')

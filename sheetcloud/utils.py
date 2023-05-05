@@ -2,9 +2,11 @@ import logging
 logger = logging.getLogger('SHEETCLOUD UTILS')
 logging.basicConfig(format='\x1b[38;5;224m %(levelname)8s \x1b[0m | \x1b[38;5;39m %(name)s \x1b[0m | %(message)s', level=logging.DEBUG)
 
+import os
 import math
 import json
 
+from datetime import datetime, timezone
 from typing import Dict, Optional
 
 
@@ -40,6 +42,19 @@ def int2a1(number: int) -> str:
     return out
     
 
+def get_modification_datetime_from_file(fname: str) -> Optional[datetime]:
+    ts = None
+    try:
+        ts = datetime.fromtimestamp(os.path.getmtime(fname), timezone.utc)
+    except BaseException as e:
+        logger.info(f'Error while reading file {fname}.')
+    return ts
+
+
+def create_dir(path: str) -> None:
+    if not os.path.isdir(path):
+        os.mkdir(path)
+
 
 if __name__ == "__main__":
     print(int2a1(0))
@@ -51,3 +66,5 @@ if __name__ == "__main__":
     print(int2a1(261))
     print(int2a1(26*26+25))
     print(int2a1(26*26+26))
+
+    # create_dir('.tmp')
