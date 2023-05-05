@@ -8,12 +8,9 @@ import pandas as pd
 from datetime import datetime, timezone
 from typing import *
 
-# from sheetcloud.conn import service
-# from sheetcloud.utils import get_modification_datetime_from_file, create_dir
-# from sheetcloud.templates import load_template
-
-from .conn import service
-from .utils import get_modification_datetime_from_file, create_dir
+from sheetcloud.conn import service
+from sheetcloud.utils import get_modification_datetime_from_file, create_dir
+from sheetcloud.templates import load_template
 
 
 SHEETCLOUD_CACHE_PATH = '.tmp'

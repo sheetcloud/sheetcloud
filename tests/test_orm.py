@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Optional, List, Dict, Any
 
 import pytest
-# import sheetcloud as sc
+import sheetcloud as sc
 
 
 @dataclass
@@ -40,7 +40,7 @@ def my_classes():
 
 
 
-# def test_orm(my_dc_list, my_classes):
-#     sc.orm.write('sheetcloud-test', my_dc_list, 'ORM_TEST')
-#     objs = sc.orm.read('sheetcloud-test', 'ORM_TEST', my_classes)
-#     print(objs)
+def test_orm(my_dc_list, my_classes):
+    sc.orm.write('sheetcloud-test', my_dc_list, 'ORM_TEST')
+    objs = sc.orm.read('sheetcloud-test', 'ORM_TEST', my_classes)
+    print(objs)
