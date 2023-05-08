@@ -23,7 +23,7 @@ def get_fully_qualified_classname(obj) -> str:
     return name
 
 
-def build_object(class_name: str, content: Dict, name_to_class: Dict) -> Any:
+def _build_object(class_name: str, content: Dict, name_to_class: Dict) -> Any:
     obj = None
     my_cls = name_to_class.get(class_name, None)
     if my_cls is not None:
@@ -40,13 +40,13 @@ def build_object(class_name: str, content: Dict, name_to_class: Dict) -> Any:
 def read(sheet_url_or_name: str, prefix_id: str, classes: List[Any], cache: bool=True) -> Optional[List]:
     res = None
     try:
-        res = build_dc_list_from_sheets(sheet_url_or_name=sheet_url_or_name, prefix_id=prefix_id, classes=classes, cache=cache)
+        res = _build_dc_list_from_sheets(sheet_url_or_name=sheet_url_or_name, prefix_id=prefix_id, classes=classes, cache=cache)
     except BaseException as e:
         logger.error(f'There was a problem loading {prefix_id} worksheets from {sheet_url_or_name} and building the list of dataclasses. Please double check the inputs and consult the documentation in order to not run into limitations.')
     return res
 
 
-def build_dc_list_from_sheets(sheet_url_or_name: str, prefix_id: str, classes: List[Any], cache: bool=True) -> Optional[List]:
+def _build_dc_list_from_sheets(sheet_url_or_name: str, prefix_id: str, classes: List[Any], cache: bool=True) -> Optional[List]:
     name_to_class = dict()
     for c in classes:
         name_to_class[c.__name__] = c
@@ -67,7 +67,7 @@ def build_dc_list_from_sheets(sheet_url_or_name: str, prefix_id: str, classes: L
                 parent_field = content.pop('parent_field', None)
                 parent_class = content.pop('parent_class', None)
         
-                obj = build_object(class_name, content, name_to_class)
+                obj = _build_object(class_name, content, name_to_class)
         
                 query_by_uuid[uuid] = obj
                 if parent_uuid not in query_by_parent_uuuid_and_field:
@@ -88,7 +88,7 @@ def build_dc_list_from_sheets(sheet_url_or_name: str, prefix_id: str, classes: L
     return obj_list
 
 
-def build_dfs_from_dc_table(dc_table: List) -> Dict[str, pd.DataFrame]:
+def _build_dfs_from_dc_table(dc_table: List) -> Dict[str, pd.DataFrame]:
     df = pd.DataFrame.from_records(dc_table, columns=['parent', 'parent_class', 'parent_field', 'obj_class', 'obj', 'parent_uuid', 'obj_uuid'])
     
     table_names = df['parent_class'].unique().tolist()
@@ -123,7 +123,7 @@ def build_dfs_from_dc_table(dc_table: List) -> Dict[str, pd.DataFrame]:
     return dfs
 
 
-def build_dc_table(dataclass_list: List, res_list: List, parent: Any, parent_field: str, parent_uuid: str) -> List:
+def _build_dc_table(dataclass_list: List, res_list: List, parent: Any, parent_field: str, parent_uuid: str) -> List:
     for dc in dataclass_list:
         if is_dataclass(dc):
             dc_uuid = uuid.uuid4()
@@ -132,14 +132,14 @@ def build_dc_table(dataclass_list: List, res_list: List, parent: Any, parent_fie
 
             for f in fields(dc):
                 if isinstance(vars(dc)[f.name], list):
-                    res_list = build_dc_table(vars(dc)[f.name], res_list, dc, f.name, dc_uuid)
+                    res_list = _build_dc_table(vars(dc)[f.name], res_list, dc, f.name, dc_uuid)
     return res_list
 
 
-def write(sheet_url_or_name: str, dataclass_list: List, prefix_id: str, template_name: Optional[str]=None, cache: bool=True) -> None:
-    dc_table = build_dc_table(dataclass_list, list(), parent=None, parent_field=None, parent_uuid=None)
+def write(sheet_url_or_name: str, dataclass_list: List, prefix_id: str, cache: bool=True) -> None:
+    dc_table = _build_dc_table(dataclass_list, list(), parent=None, parent_field=None, parent_uuid=None)
     try:
-        dfs = build_dfs_from_dc_table(dc_table)
+        dfs = _build_dfs_from_dc_table(dc_table)
     except BaseException as e:
         logging.error(f'Error while encoding dataclasses. Please consult the documentation to ensure not running into limitations.')
         return None

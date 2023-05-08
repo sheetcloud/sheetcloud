@@ -6,7 +6,8 @@ logging.basicConfig(format='\x1b[38;5;224m %(levelname)8s \x1b[0m | \x1b[38;5;39
 
 from typing import *
 
-from sheetcloud.conn import service, ENV_SHEETCLOUD_USERNAME, ENV_SHEETCLOUD_PASSWORD
+from sheetcloud.conn import service, ENV_SHEETCLOUD_USERNAME, ENV_SHEETCLOUD_LICENSE
+
 
 
 def request_recovery_token(email: str=None) -> None:
@@ -31,12 +32,16 @@ def change_password(new_password: str) -> None:
 def activate_license_key(key: str) -> None:
     response = service('/users/license/update', params={'key': key}, method='post')
     if 'is_valid' in response:
-        logging.info(f'License is valid = {response["is_valid"]}.')
+        logging.info(f'License is valid: {response["is_valid"]}.')
 
 
 def open_sheetcloud_website() -> None:
     webbrowser.open(f'https://sheetcloud.org')
 
+
+if ENV_SHEETCLOUD_LICENSE is not None:
+    logger.info(f'License found. Attempting to verify. Note: This only has to be done once.')
+    activate_license_key(ENV_SHEETCLOUD_LICENSE)
 
 
 if __name__ == "__main__":

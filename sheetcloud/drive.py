@@ -3,16 +3,28 @@ logger = logging.getLogger('SHEETCLOUD DRIVE')
 logging.basicConfig(format='\x1b[38;5;224m %(levelname)8s \x1b[0m | \x1b[38;5;39m %(name)s \x1b[0m | %(message)s', level=logging.DEBUG)
 
 import io
-import json
 import pandas as pd
 
-from datetime import datetime
 from typing import *
 
 from sheetcloud.conn import service
 
 
+
 def list_my_csvs() -> List[Dict]:
+    """ Returns a list of dict containing properties of all CSVs in the target account.
+        Properties:
+        - mimeType: str
+        - parents (List of ids)
+        - size 
+        - id
+        - name
+        - modifiedTime
+        - url
+
+    Returns:
+        List[Dict]: List of CSV properties
+    """
     res = service('/drive/list/csv', method='post')
     if 'csvs' in res:
         logger.info(f'List contains a total of {len(res["csvs"])} CSVs.')
@@ -21,6 +33,14 @@ def list_my_csvs() -> List[Dict]:
 
 
 def read_csv(file_id: str) -> pd.DataFrame:
+    """ Read a specific CSV file with ID `file_id`.
+
+    Args:
+        file_id (str): The id of the CSV file to read.
+
+    Returns:
+        pd.DataFrame: DataFrame containing the data of the CSV file.
+    """
     headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/octet-stream',
@@ -31,7 +51,13 @@ def read_csv(file_id: str) -> pd.DataFrame:
     return df
 
 
-def write_csv(name: str, df: pd.DataFrame, cache: bool=True) -> None:
+def write_csv(name: str, df: pd.DataFrame) -> None:
+    """ Write a pandas DataFrame to a CSV file with name `name` in the target account.
+
+    Args:
+        name (str): Name of the file (not ID)
+        df (pd.DataFrame): DataFrame containing the data.
+    """
     with io.BytesIO() as memory_buffer:
         df.to_parquet(
             memory_buffer,
@@ -45,8 +71,8 @@ def write_csv(name: str, df: pd.DataFrame, cache: bool=True) -> None:
         }
         params = {'name': name}
         endpoint = '/drive/write/csv'
-        resp = service(endpoint, params=params, files=files, method='post')
-        print(resp)
+        _ = service(endpoint, params=params, files=files, method='post')
+        
 
 
 

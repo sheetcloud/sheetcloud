@@ -11,6 +11,9 @@ from sheetcloud import sheets
 from sheetcloud import templates
 
 
+def there_is_no_fun_here_yet():
+    raise Exception('Ohhhhhh, no fun :(')
+
 # def write_image(sheet_url_or_name: str, worksheet_name: str, img, cache: bool=True) -> None:
 
 #     sheets.write(sheet_url_or_name, worksheet_name, df, cache=cache)
