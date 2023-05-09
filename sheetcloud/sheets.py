@@ -8,12 +8,16 @@ import pandas as pd
 from datetime import datetime, timezone
 from typing import *
 
-from sheetcloud.conn import service
+from sheetcloud.conn import service, ENV_SHEETCLOUD_DEV
 from sheetcloud.utils import get_modification_datetime_from_file, create_dir
 from sheetcloud.templates import load_template
 
+if not ENV_SHEETCLOUD_DEV:
+    import warnings
+    warnings.filterwarnings("ignore")
 
 SHEETCLOUD_CACHE_PATH = '.tmp'
+
 
 
 def list_spreadsheets() -> List[Dict]:
