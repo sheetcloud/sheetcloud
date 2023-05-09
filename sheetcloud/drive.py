@@ -78,16 +78,23 @@ def write_csv(name: str, df: pd.DataFrame) -> None:
 
 
 if __name__ == "__main__":
+    from datetime import datetime
     print('Start connecting...')
-    print(list_my_csvs())
-    df = read_csv('1etL1yAilIh_mDuY7B_JH8sTY3Y0W3lKI')
-    print(df)
+    # print(list_my_csvs())
+    # df = read_csv('1etL1yAilIh_mDuY7B_JH8sTY3Y0W3lKI')
+    # print(df)
+    # print(df.info())
+
+    df = pd.read_csv('https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv')
+    df['a_date_time'] = datetime.now()
+    df['an_int_column'] = 10
     print(df.info())
+    write_csv('sheetcloud-csv-test-1', df)
 
 
     # df = pd.DataFrame([[1,2,3],[4,pd.NA,6],[7,7,pd.NA]], columns=['col1','col2','col3'])
     # df = pd.read_csv('../check.csv')
     # df = pd.concat([df, df, df, df], ignore_index=True) # ~2.8m entries (incl. NA)
-    write_csv('sheetcloud-csv-test-1', df)
+    # write_csv('sheetcloud-csv-test-1', df)
 
     print('Done')

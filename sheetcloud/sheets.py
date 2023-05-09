@@ -87,7 +87,30 @@ def _cache_write(id: str, worksheet: str, df: pd.DataFrame, append: bool, ts: da
             logger.debug(f'Appending data to worksheet {worksheet} in local cache. Local ts={ts_local}, remote ts={ts}.')
 
 
-def read(sheet_url_or_name: str, worksheet_name: str, cache: bool=True) -> pd.DataFrame:
+def infer_dtypes(df: pd.DataFrame) -> pd.DataFrame:
+    for c in df.columns:
+        c_num = pd.to_numeric(df[c], errors='ignore')
+        c_dt = pd.to_datetime(df[c], errors='ignore', infer_datetime_format=True)
+
+        if c_dt.dtype == 'object' and not c_num.dtype == 'object': 
+            df[c] = c_num
+        if not c_dt.dtype == 'object' and c_num.dtype == 'object': 
+            df[c] = c_dt
+    return df
+
+
+def read(sheet_url_or_name: str, worksheet_name: str, try_infer_dtypes: bool=True, cache: bool=True) -> pd.DataFrame:
+    """ Read worksheet from spreadsheet into a DataFrame.
+
+    Args:
+        sheet_url_or_name (str): The name or URL of an spreadsheet
+        worksheet_name (str): The worksheet name
+        try_infer_dtypes (bool, optional): Dtypes such as float/int need to be inferred otherwise dtype will be object. Defaults to True.
+        cache (bool, optional): Caching large amounts of read-only data locally is much faster when accessing it multiple times. Defaults to True.
+
+    Returns:
+        pd.DataFrame: DataFrame containing the data of `worksheet_name` of spreadsheet `sheet_url_or_name`
+    """
     ts = None
     id = None
     if cache:
@@ -107,10 +130,27 @@ def read(sheet_url_or_name: str, worksheet_name: str, cache: bool=True) -> pd.Da
     df = pd.read_parquet(io.BytesIO(content), engine='pyarrow', use_nullable_dtypes=True)
     if cache and id is not None:
         _cache_write(id, worksheet_name, df, False, ts)
+
+    if try_infer_dtypes:
+        df = infer_dtypes(df)
     return df
 
 
 def write(sheet_url_or_name: str, worksheet_name: str, df: pd.DataFrame, append: bool=False, cache: bool=True) -> None:
+    """ Write a DataFrame to a specific worksheet within a given spreadsheet. If no spreadsheet with the given name exists, create a 
+        new one. Same holds true for a worksheet. Beware: if a the worksheet contains data. 
+
+    Args:
+        sheet_url_or_name (str): The name or URL of an spreadsheet
+        worksheet_name (str): The worksheet name
+        df (pd.DataFrame): Data to store.
+        append (bool, optional): Append the data instead of overwrite. Assumes the worksheet exists. Defaults to False.
+        cache (bool, optional): Caching large amounts of read-only data locally is much faster when accessing it multiple times. Defaults to True.
+    """
+    # make dates json serializable
+    dfc = df.select_dtypes(include=['datetime'])
+    df[dfc.columns] = dfc.astype('str')
+    
     if cache:
         ts, id, title = get_modified_datetime(sheet_url_or_name)
         if id is not None:
@@ -143,7 +183,15 @@ if __name__ == "__main__":
     # print(list_worksheets_in_spreadsheet('sheetcloud-test'))
 
     # print(sheets)
-    read('sheetcloud-test', 'write-test')
+    # df = pd.read_csv('https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv')
+    # df['a_date_time'] = datetime.now()
+    # df['an_int_column'] = 10
+    # print(df.info())
+    # write('sheetcloud-test', 'write-test', df)
+
+    df = read('sheetcloud-test', 'write-test')
+
+    print(df.info())
     # print(get_modified_datetime('sheetcloud-test'))
 
 
