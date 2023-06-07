@@ -152,7 +152,7 @@ def write(sheet_url_or_name: str, worksheet_name: str, df: pd.DataFrame, append:
         cache (bool, optional): Caching large amounts of read-only data locally is much faster when accessing it multiple times. Defaults to True.
     """
     # make dates json serializable
-    dfc = df.select_dtypes(include=['datetime'])
+    dfc = df.select_dtypes(include=['datetime', 'datetimetz'])
     df[dfc.columns] = dfc.astype('str')
     
     if cache:
