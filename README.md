@@ -9,11 +9,14 @@ Website: https://sheetcloud.org
 
 ## Status
 
-Tests
+pyTests
 [![Tests](https://github.com/sheetcloud/sheetcloud/actions/workflows/continuous_integration.yml/badge.svg)](https://github.com/sheetcloud/sheetcloud/actions/workflows/continuous_integration.yml)
 
-Deploy to PYPI
+PYPI
 [![PYPI](https://github.com/sheetcloud/sheetcloud/actions/workflows/deploy_to_pypi.yml/badge.svg)](https://github.com/sheetcloud/sheetcloud/actions/workflows/deploy_to_pypi.yml)
+
+Docs
+[![deploy_documentation](https://github.com/sheetcloud/sheetcloud/actions/workflows/build_and_deploy_docs.yml/badge.svg)](https://github.com/sheetcloud/sheetcloud/actions/workflows/build_and_deploy_docs.yml)
 
 ## Setup
 
