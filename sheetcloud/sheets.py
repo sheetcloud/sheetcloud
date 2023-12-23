@@ -23,6 +23,44 @@ if not ENV_SHEETCLOUD_DEV:
 SHEETCLOUD_CACHE_PATH = ".tmp"
 
 
+def _cache_read(id: str, worksheet: str, ts: datetime) -> Optional[pd.DataFrame]:
+    create_dir(SHEETCLOUD_CACHE_PATH)
+    fname = f"{SHEETCLOUD_CACHE_PATH}/{id}_{worksheet}.parquet"
+    ts_local = get_modification_datetime_from_file(fname)
+    if ts_local is not None and ts_local < ts:
+        logger.debug(
+            f"Restore {worksheet} from local cache. Local ts={ts_local}, remote ts={ts}."
+        )
+        return pd.read_parquet(fname)
+    return None
+
+
+def _cache_write(
+    id: str, worksheet: str, df: pd.DataFrame, append: bool, ts: datetime
+) -> None:
+    create_dir(SHEETCLOUD_CACHE_PATH)
+    fname = f"{SHEETCLOUD_CACHE_PATH}/{id}_{worksheet}.parquet"
+    if not append:
+        df.to_parquet(fname)
+        ts_local = get_modification_datetime_from_file(fname)
+        logger.debug(
+            f"Store worksheet {worksheet} in local cache. Local ts={ts_local}, remote ts={ts}."
+        )
+    else:
+        ts_local = get_modification_datetime_from_file(fname)
+        logger.debug(
+            f"Checking if data can be appended to worksheet {worksheet} in local cache. Local ts={ts_local}, remote ts={ts}."
+        )
+        if ts_local is not None and ts_local < ts:
+            df_org = pd.read_parquet(fname)
+            df = pd.concat([df_org, df], ignore_index=True)
+            df.to_parquet(fname)
+            ts_local = get_modification_datetime_from_file(fname)
+            logger.debug(
+                f"Appending data to worksheet {worksheet} in local cache. Local ts={ts_local}, remote ts={ts}."
+            )
+
+
 def list_spreadsheets() -> List[Dict]:
     res = service("/sheets/list", method="post")
     if "sheets" in res:
@@ -92,44 +130,6 @@ def share(
     }
     resp = service("/sheets/share", params=params, data=data)
     return resp
-
-
-def _cache_read(id: str, worksheet: str, ts: datetime) -> Optional[pd.DataFrame]:
-    create_dir(SHEETCLOUD_CACHE_PATH)
-    fname = f"{SHEETCLOUD_CACHE_PATH}/{id}_{worksheet}.parquet"
-    ts_local = get_modification_datetime_from_file(fname)
-    if ts_local is not None and ts_local < ts:
-        logger.debug(
-            f"Restore {worksheet} from local cache. Local ts={ts_local}, remote ts={ts}."
-        )
-        return pd.read_parquet(fname)
-    return None
-
-
-def _cache_write(
-    id: str, worksheet: str, df: pd.DataFrame, append: bool, ts: datetime
-) -> None:
-    create_dir(SHEETCLOUD_CACHE_PATH)
-    fname = f"{SHEETCLOUD_CACHE_PATH}/{id}_{worksheet}.parquet"
-    if not append:
-        df.to_parquet(fname)
-        ts_local = get_modification_datetime_from_file(fname)
-        logger.debug(
-            f"Store worksheet {worksheet} in local cache. Local ts={ts_local}, remote ts={ts}."
-        )
-    else:
-        ts_local = get_modification_datetime_from_file(fname)
-        logger.debug(
-            f"Checking if data can be appended to worksheet {worksheet} in local cache. Local ts={ts_local}, remote ts={ts}."
-        )
-        if ts_local is not None and ts_local < ts:
-            df_org = pd.read_parquet(fname)
-            df = pd.concat([df_org, df], ignore_index=True)
-            df.to_parquet(fname)
-            ts_local = get_modification_datetime_from_file(fname)
-            logger.debug(
-                f"Appending data to worksheet {worksheet} in local cache. Local ts={ts_local}, remote ts={ts}."
-            )
 
 
 def infer_dtypes(df: pd.DataFrame) -> pd.DataFrame:
