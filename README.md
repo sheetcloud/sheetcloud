@@ -1,21 +1,11 @@
 # Sheetcloud
 
-Turn Spreadsheets into a Cloud Database with SheetCloud! Python library for easy access.
+Simplify your data workflow
 
 Website: https://sheetcloud.org
 
-
-## NOTE: We are still in beta testing phase. If you like to become a Sheetcloud  beta tester (with some perks attached), write us an email at `contact[at]sheetcloud.org`.
-
-## Status
-
-pyTests
 [![Tests](https://github.com/sheetcloud/sheetcloud/actions/workflows/continuous_integration.yml/badge.svg)](https://github.com/sheetcloud/sheetcloud/actions/workflows/continuous_integration.yml)
-
-PYPI
 [![PYPI](https://github.com/sheetcloud/sheetcloud/actions/workflows/deploy_to_pypi.yml/badge.svg)](https://github.com/sheetcloud/sheetcloud/actions/workflows/deploy_to_pypi.yml)
-
-Docs
 [![deploy_documentation](https://github.com/sheetcloud/sheetcloud/actions/workflows/build_and_deploy_docs.yml/badge.svg)](https://github.com/sheetcloud/sheetcloud/actions/workflows/build_and_deploy_docs.yml)
 
 ## Setup
