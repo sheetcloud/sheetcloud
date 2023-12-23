@@ -1,3 +1,6 @@
+"""
+.. include:: ../README.md
+"""
 from . import sheets
 from . import drive
 from . import orm
